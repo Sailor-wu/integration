@@ -17,7 +17,7 @@ import com.google.common.reflect.ClassPath.ClassInfo;
 public class BaseMain {
 
 	public static void load() throws IOException {
-		//扫描整个module目录下所有的类找出：系统表对象，事件方法不包含内部类
+		//扫描整个logic目录下所有的类找出：事件方法不包含内部类
 		Set<ClassInfo> classes = ClassPath.from(StartMain.class.getClassLoader()).getTopLevelClassesRecursive("com.dce.logic");
 		for (ClassInfo ci: classes) {
 			Class<?> cls  = ci.load();

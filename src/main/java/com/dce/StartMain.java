@@ -22,6 +22,7 @@ public class StartMain {
 			System.out.println("扫描注解，注册event事件");
 			BaseMain.load();
 			System.out.println("扫描注解，注册event事件   succ  ");
+			// 调用事件处理方法
 			String jsonStr="{age:18}";
 			EventManager.executeEvent(EventType.Logininit,jsonStr);
 			
