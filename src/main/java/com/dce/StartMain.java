@@ -7,6 +7,7 @@ import com.dce.config.SysConfig;
 import com.dce.event.EventManager;
 import com.dce.event.EventType;
 import com.dce.log.LogBack;
+import com.dce.quartz.JobStoreRunner;
 
 import ch.qos.logback.core.joran.spi.JoranException;
 
@@ -26,6 +27,21 @@ public class StartMain {
 			String jsonStr="{age:18}";
 			EventManager.executeEvent(EventType.Logininit,jsonStr);
 			
+			// 开启任务
+			JobStoreRunner.start();
+			// 定时处理 等待一个小时
+			
+			new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+					try {
+						Thread.currentThread().sleep(60*60*60*2);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}).start();
 		} catch (JoranException e) {
 			e.printStackTrace();
 		}

@@ -10,7 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.dce.event.annotation.LoginInit;
-
+import com.dce.quartz.annotation.FixedTimeQuartz;
+import com.dce.util.StringUtil;
 /**
  * desc  事件管理中心
  * @author wu
@@ -23,6 +24,10 @@ public class EventManager {
 	
 	/** 事件集合 */
 	private static HashMap<EventType, List<EventObject>> eventMap = new HashMap<>();
+	
+	/** 定时事件集合<jobname, jobList> */
+	private static HashMap<Integer, List<EventObject>> quartzEventMap = new HashMap<Integer, List<EventObject>>(); 
+	
 	/**
 	 * desc 注册事件，保存到集合
 	 * @param cls
@@ -40,13 +45,30 @@ public class EventManager {
 			
 			// 分配不同的类型处理不同的注解
 			for (Annotation anno : arr) {
-				EventType type = getAnnotationKey(anno);
-				List<EventObject> list = eventMap.get(type);
-				if (list == null) {
-					list = new ArrayList<EventObject>();
-					eventMap.put(type, list);
+				// 扫描方法注解 查看是否是定时事件
+				if(anno instanceof FixedTimeQuartz) {
+					// 获取定时事件执行的事件
+					String time = ((FixedTimeQuartz)anno).time();
+					System.out.println("=========定时事件字符串=========="+time);
+					// 可配置多个 逗号隔开 解析
+					int[] intArr = StringUtil.toIntArr(time, ",");
+					for (int i : intArr) {
+						List<EventObject> list = quartzEventMap.get(i);
+						if (list == null) {
+							list = new ArrayList<EventObject>();
+							quartzEventMap.put(i, list);
+						}
+						list.add(new EventObject(obj, method));
+					}
+				}else {					
+					EventType type = getAnnotationKey(anno);
+					List<EventObject> list = eventMap.get(type);
+					if (list == null) {
+						list = new ArrayList<EventObject>();
+						eventMap.put(type, list);
+					}
+					list.add(new EventObject(obj, method));
 				}
-				list.add(new EventObject(obj, method));
 			}
 		}
 		
@@ -81,5 +103,24 @@ public class EventManager {
 				logger.error("execute event excption, e=", e);
 			}
 		}
+	}
+	
+	/**
+	 *  desc 执行quartz定时事件
+	 * @param jobName
+	 */
+	public static void executeQuartzEvent(int jobName){
+		//其他定时事件
+		List<EventObject> events = quartzEventMap.get(jobName);
+		if(events != null){
+			for(EventObject evt : events){
+				try{
+					evt.getMethod().invoke(evt.getObj());
+				}catch(Exception e){
+					logger.error("execute fixed time event err, excption=", e);
+				}
+			}
+		}
+		logger.info("execute quartz job succ. job="+ jobName);
 	}
 }
