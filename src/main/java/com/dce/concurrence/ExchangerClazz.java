@@ -5,11 +5,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.dce.console.SystemHandler;
+
 public class ExchangerClazz {
 
 	private static Exchanger<String> exchanger = new Exchanger<String>();
 	
 	public static void main(String[] args) {
+		new SystemHandler().init();
 		ExecutorService service = Executors.newFixedThreadPool(2);
 		
 		service.execute(()->{
